@@ -4,7 +4,7 @@ dependencies {
     compile(project(':integration-android')) {
         exclude(group: 'com.google.android', module: 'android')
     }
-    compile 'org.bitcoinj:bitcoinj-core:0.12.3'
+    compile 'org.ferritej:ferritej-core:1.0.0'
 }
 
 android {

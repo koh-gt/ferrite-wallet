@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.regex.Pattern;
 
@@ -82,7 +83,7 @@ public abstract class InputParser
 		@Override
 		public void parse()
 		{
-			if (input.startsWith("BITCOIN:-"))
+			if (input.startsWith("GOLDCOIN:-"))
 			{
 				try
 				{
@@ -109,7 +110,7 @@ public abstract class InputParser
 					error(R.string.input_parser_invalid_paymentrequest, x.getMessage());
 				}
 			}
-			else if (input.startsWith("bitcoin:"))
+			else if (input.startsWith("goldcoin:"))
 			{
 				try
 				{
@@ -450,13 +451,19 @@ public abstract class InputParser
 		dialog.show();
 	}
 
-	private static final Pattern PATTERN_BITCOIN_ADDRESS = Pattern.compile("[" + new String(Base58.ALPHABET) + "]{20,40}");
-	private static final Pattern PATTERN_DUMPED_PRIVATE_KEY_UNCOMPRESSED = Pattern.compile((Constants.NETWORK_PARAMETERS.getId().equals(
-			NetworkParameters.ID_MAINNET) ? "5" : "9")
-			+ "[" + new String(Base58.ALPHABET) + "]{50}");
-	private static final Pattern PATTERN_DUMPED_PRIVATE_KEY_COMPRESSED = Pattern.compile((Constants.NETWORK_PARAMETERS.getId().equals(
-			NetworkParameters.ID_MAINNET) ? "[KL]" : "c")
-			+ "[" + new String(Base58.ALPHABET) + "]{51}");
-	private static final Pattern PATTERN_BIP38_PRIVATE_KEY = Pattern.compile("6P" + "[" + new String(Base58.ALPHABET) + "]{56}");
-	private static final Pattern PATTERN_TRANSACTION = Pattern.compile("[0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ$\\*\\+\\-\\.\\/\\:]{100,}");
+	// Wallet Import Format (WIF)
+	 // WIF SECRET_KEY for Ferritecoin (FEC) is HEX A3 or DEC 163 for mainnet
+	 //                                         HEX EF or DEC 239 for testnet
+	 // Check private key from 00...00 to ff...ff
+	 // Prefix - PrivateKey - Compression - Checksum -> Base58 WIF Private Key
+	 // WARNING: NEVER ENTER YOUR PRIVATE KEY IN TO A WEBSITE OR USE A PRIVATE KEY GENERATED ONLINE.
+	 private static final Pattern PATTERN_BITCOIN_ADDRESS = Pattern.compile("[" + new String(Base58.ALPHABET) + "]{20,40}");
+	 private static final Pattern PATTERN_DUMPED_PRIVATE_KEY_UNCOMPRESSED = Pattern.compile((Constants.NETWORK_PARAMETERS.getId().equals(
+			 NetworkParameters.ID_MAINNET) ? "6" : "9")
+			 + "[" + new String(Base58.ALPHABET) + "]{50}");
+	 private static final Pattern PATTERN_DUMPED_PRIVATE_KEY_COMPRESSED = Pattern.compile((Constants.NETWORK_PARAMETERS.getId().equals(
+			 NetworkParameters.ID_MAINNET) ? "R" : "c")
+			 + "[" + new String(Base58.ALPHABET) + "]{51}");
+	 private static final Pattern PATTERN_BIP38_PRIVATE_KEY = Pattern.compile("6P" + "[" + new String(Base58.ALPHABET) + "]{56}");
+	 private static final Pattern PATTERN_TRANSACTION = Pattern.compile("[0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ$\\*\\+\\-\\.\\/\\:]{100,}");
 }

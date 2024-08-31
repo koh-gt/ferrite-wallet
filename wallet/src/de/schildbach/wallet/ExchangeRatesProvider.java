@@ -39,6 +39,8 @@ import javax.annotation.Nullable;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.utils.Fiat;
 import org.bitcoinj.utils.MonetaryFormat;
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,7 +112,6 @@ public class ExchangeRatesProvider extends ContentProvider
 	private static final URL BLOCKCHAININFO_URL;
 	private static final String[] BLOCKCHAININFO_FIELDS = new String[] { "15m" };
 	private static final String BLOCKCHAININFO_SOURCE = "blockchain.info";
-
 	// https://bitmarket.eu/api/ticker
 
 	static
@@ -296,6 +297,19 @@ public class ExchangeRatesProvider extends ContentProvider
 
 		try
 		{
+
+			Double btcRate = 0.0;
+			Object result = getFECValueXeggex();
+
+			if(result == null)
+			{
+				// result = getCoinValueBTC_cryptopia();
+				// if(result == null)
+					return null;
+			}
+
+			btcRate = (Double)result;
+
 			connection = (HttpURLConnection) url.openConnection();
 
 			connection.setInstanceFollowRedirects(false);
@@ -331,12 +345,17 @@ public class ExchangeRatesProvider extends ContentProvider
 
 						for (final String field : fields)
 						{
-							final String rateStr = o.optString(field, null);
+							/*final*/ String rateStr = o.optString(field, null);
 
 							if (rateStr != null)
 							{
 								try
 								{
+
+									double rateForBTC = Double.parseDouble(rateStr);
+
+									rateStr = String.format("%.8f", rateForBTC * btcRate).replace(",", ".");
+
 									final Fiat rate = Fiat.parseFiat(currencyCode, rateStr);
 
 									if (rate.signum() > 0)
@@ -387,5 +406,51 @@ public class ExchangeRatesProvider extends ContentProvider
 		}
 
 		return null;
+	}
+
+	private static Double getFECValueXeggex()
+	{
+		Double btcRate = 0.0;
+		String exchange = "https://api.xeggex.com/api/v2/ticker/FEC_USDT";
+
+		HttpURLConnection connection = null;
+
+		try {
+            final URL url = new URL(exchange);
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setInstanceFollowRedirects(false);
+            connection.setConnectTimeout(Constants.HTTP_TIMEOUT_MS);
+            connection.setReadTimeout(Constants.HTTP_TIMEOUT_MS);
+            connection.connect();
+
+            final StringBuilder content = new StringBuilder();
+            Reader reader = null;
+			
+            try {
+                reader = new InputStreamReader(new BufferedInputStream(connection.getInputStream(), 1024));
+                Io.copy(reader, content);
+                final JSONObject responseJson = new JSONObject(content.toString());
+
+                // Extract the "last_price" from the JSON response
+                btcRate = responseJson.getDouble("last_price");
+
+            } finally {
+                if (reader != null) {
+                    reader.close();
+                }
+            }
+
+            return btcRate;
+
+        } catch (final IOException | JSONException ex) {
+            ex.printStackTrace();
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
+
+		return btcRate;
+
 	}
 }

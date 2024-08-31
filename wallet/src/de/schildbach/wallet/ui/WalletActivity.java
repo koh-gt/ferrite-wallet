@@ -542,7 +542,7 @@ public final class WalletActivity extends AbstractWalletActivity
 			@Override
 			protected void handleLine(final String line, final long serverTime)
 			{
-				final int serverVersionCode = Integer.parseInt(line.split("\\s+")[0]);
+				/*final int serverVersionCode = Integer.parseInt(line.split("\\s+")[0]);
 
 				log.info("according to \"" + url + "\", strongly recommended minimum app version is " + serverVersionCode);
 
@@ -581,7 +581,7 @@ public final class WalletActivity extends AbstractWalletActivity
 					});
 
 					return;
-				}
+				}*/
 			}
 
 			@Override

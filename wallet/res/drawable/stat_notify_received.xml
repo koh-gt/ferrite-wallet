@@ -1,0 +1,16 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="37dp"
+    android:height="48dp"
+    android:viewportWidth="1.0"
+    android:viewportHeight="1.0">
+
+    <!-- Black Circle -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M0.5,0c0.27614,0,0.5,0.22386,0.5,0.5s-0.22386,0.5-0.5,0.5S0,0.77614,0,0.5,0.22386,0,0.5,0Z"/>
+
+    <!-- Gold Path -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M0.8164,0.4863v0.027H0.6151q-0.0679,0.1183-0.1357,0.2367-0.0911,-0.053 -0.1825,-0.1069,0.0369,-0.0648 0.0737,-0.1297H0.1839V0.4863H0.3863q0.0679,-0.1183 0.1357,-0.2367 0.0916,0.0533 0.182,0.1067 -0.0369,0.065 0.0737,0.13h0.209ZM0.532,0.2864q-0.0992,0.1732-0.1985,0.3467v0.0002l0.1374,0.0794q0.0992,-0.1732 0.1985,-0.3467Q0.5995,0.3266 0.532,0.2864Z"/>
+</vector>
