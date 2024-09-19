@@ -3,24 +3,24 @@ FILES
 Your wallet contains your private keys and various transaction related metadata. It is stored in app-private
 storage:
 
-	Mainnet: /data/data/de.schildbach.wallet/files/wallet-protobuf (MODE_PRIVATE)
+	Mainnet: /data/data/com.ferrite.wallet/files/wallet-protobuf (MODE_PRIVATE)
 
-	Testnet: /data/data/de.schildbach.wallet_test/files/wallet-protobuf-testnet (MODE_WORLD_READABLE | MODE_WORLD_WRITEABLE)
+	Testnet: /data/data/com.ferrite.wallet_test/files/wallet-protobuf-testnet (MODE_WORLD_READABLE | MODE_WORLD_WRITEABLE)
 
 The wallet file format is not compatible to wallet.dat (Satoshi client). Rather, it uses a custom protobuf format
-which should be compatible between clients using bitcoinj.
+which should be compatible between clients using ferritej.
 
 Certain actions cause automatic rolling backups of your wallet to app-private storage:
 
-	Mainnet: /data/data/de.schildbach.wallet/files/key-backup-protobuf (MODE_PRIVATE)
+	Mainnet: /data/data/com.ferrite.wallet/files/key-backup-protobuf (MODE_PRIVATE)
 
-	Testnet: /data/data/de.schildbach.wallet_test/files/key-backup-protobuf-testnet (MODE_PRIVATE)
+	Testnet: /data/data/com.ferrite.wallet_test/files/key-backup-protobuf-testnet (MODE_PRIVATE)
 
 Your wallet can be manually backed up to and restored from external storage:
 
-	Mainnet: /sdcard/Download/bitcoin-wallet-backup-<yyyy-MM-dd>
+	Mainnet: /sdcard/Download/ferrite-wallet-backup-<yyyy-MM-dd>
 
-	Testnet: /sdcard/Download/bitcoin-wallet-backup-testnet-<yyyy-MM-dd>
+	Testnet: /sdcard/Download/ferrite-wallet-backup-testnet-<yyyy-MM-dd>
 
 If you want to recover coins from manual backups and for whatever reason you cannot use the app
 itself to restore from the backup, see the separate README.recover guide.
@@ -30,7 +30,7 @@ DEBUGGING
 
 Wallet file for Testnet can be pulled from an (even un-rooted) device using
 
-	adb pull /data/data/de.schildbach.wallet_test/files/wallet-protobuf-testnet
+	adb pull /data/data/com.ferrite.wallet_test/files/wallet-protobuf-testnet
 
 Log messages can be viewed by
 
@@ -68,14 +68,14 @@ and switch to it. Use
 
 to download the necessary API level.
 
-Finally, you can build Bitcoin Wallet and sign it with your development key. Again in your workspace,
+Finally, you can build ferrite Wallet and sign it with your development key. Again in your workspace,
 use
 
 	# first time only
-	git clone -b master https://github.com/bitcoin-wallet/bitcoin-wallet.git bitcoin-wallet
+	git clone -b master https://github.com/koh-gt/ferrite-wallet.git ferrite-wallet
 
 	# each time
-	cd bitcoin-wallet
+	cd ferrite-wallet
 	git pull
 	gradle clean test build
 
@@ -85,7 +85,7 @@ To install the app on your Android device, use
 	sudo apt install android-tools-adb
 
 	# each time
-	adb install wallet/build/outputs/apk/bitcoin-wallet-debug.apk
+	adb install wallet/build/outputs/apk/ferrite-wallet-debug.apk
 
 If installing fails, make sure "Developer options" and "USB debugging" are enabled on your Android device, and an ADB
 connection is established.
@@ -102,9 +102,9 @@ wallet file is protected against access from non-root users. In the code reposit
 separate 'prod' branch that gets rebased against master with each released version.
 
 	# each time
-	cd bitcoin-wallet
+	cd ferrite-wallet
 	git fetch origin
-	git checkout origin/prod
+	git checkout origin/master
 	gradle clean test build
 
 
@@ -144,7 +144,7 @@ corrected manually.
 
 NFC (Near field communication)
 
-Bitcoin Wallet supports reading Bitcoin requests via NFC, either from a passive NFC tag or from
+Ferrite Wallet supports reading ferrite requests via NFC, either from a passive NFC tag or from
 another NFC capable Android device that is requesting coins.
 
 For this to work, just enable NFC in your phone and hold your phone to the tag or device (with
@@ -158,26 +158,26 @@ Instructions for preparing an NFC tag with your address:
 
 - Some tags have less than 50 bytes capacity, those won't work. 1 KB tags recommended.
 
-- The tag needs to contain a Bitcoin URI. You can construct one with the "Request coins" dialog,
+- The tag needs to contain a ferrite URI. You can construct one with the "Request coins" dialog,
   then share with messaging or email. You can also construct the URI manually. Example for Mainnet:
-  bitcoin:1G2Y2jP5YFZ5RGk2PXaeWwbeA5y1ZtFhoL
+  ferrite:1G2Y2jP5YFZ5RGk2PXaeWwbeA5y1ZtFhoL
 
 - The type of the message needs to be URI or URL (not Text).
 
 - If you put your tag at a public place, don't forget to enable write protect. Otherwise, someone
-  could overwrite the tag with his own Bitcoin address.
+  could overwrite the tag with his own ferrite address.
 
 
-BITCOINJ
+FerriteJ
 
-Bitcoin Wallet uses bitcoinj for Bitcoin specific logic:
+Ferrite Wallet uses ferritej for ferrite specific logic:
 
-	https://bitcoinj.github.io/
+	https://github.com/koh-gt/ferritej
 
 
 EXCHANGE RATES
 
-Bitcoin Wallet reads this feed from "BitcoinAverage" for getting exchange rates:
+ferrite Wallet reads this feed from "BitcoinAverage" for getting exchange rates:
 
 	https://api.bitcoinaverage.com/custom/abw
 
@@ -192,7 +192,7 @@ If the above feed is not available, the feed from "Blockchain.info" is fetched i
 
 SWEEPING WALLETS
 
-For sweeping wallets, Bitcoin Wallet uses an API by biteasy to query for unspent transaction
+For sweeping wallets, ferrite Wallet uses an API by biteasy to query for unspent transaction
 outputs:
 
 	https://api.biteasy.com/v2/btc/mainnet/outputs

@@ -12,7 +12,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 package de.schildbach.wallet.service;
@@ -27,36 +27,35 @@ import de.schildbach.wallet.WalletApplication;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.preference.PreferenceManager;
 
 /**
  * @author Andreas Schildbach
  */
-public class BootstrapReceiver extends BroadcastReceiver
-{
-	private static final Logger log = LoggerFactory.getLogger(BootstrapReceiver.class);
+public class BootstrapReceiver extends BroadcastReceiver {
+    private static final Logger log = LoggerFactory.getLogger(BootstrapReceiver.class);
 
-	@Override
-	public void onReceive(final Context context, final Intent intent)
-	{
-		log.info("got broadcast: " + intent);
+    @Override
+    public void onReceive(final Context context, final Intent intent) {
+        log.info("got broadcast: " + intent);
 
-		final boolean bootCompleted = Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction());
-		final boolean packageReplaced = Intent.ACTION_MY_PACKAGE_REPLACED.equals(intent.getAction());
+        final WalletApplication application = (WalletApplication) context.getApplicationContext();
 
-		if (packageReplaced || bootCompleted)
-		{
-			// make sure wallet is upgraded to HD
-			if (packageReplaced)
-				UpgradeWalletService.startUpgrade(context);
+        final boolean bootCompleted = Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction());
+        final boolean packageReplaced = Intent.ACTION_MY_PACKAGE_REPLACED.equals(intent.getAction());
 
-			// make sure there is always an alarm scheduled
-			WalletApplication.scheduleStartBlockchainService(context);
+        if (packageReplaced || bootCompleted) {
+            // make sure wallet is upgraded to HD
+            if (packageReplaced)
+                UpgradeWalletService.startUpgrade(context);
 
-			// if the app hasn't been used for a while and contains coins, maybe show reminder
-			final Configuration config = new Configuration(PreferenceManager.getDefaultSharedPreferences(context), context.getResources());
-			if (config.remindBalance() && config.hasBeenUsed() && config.getLastUsedAgo() > Constants.LAST_USAGE_THRESHOLD_INACTIVE_MS)
-				InactivityNotificationService.startMaybeShowNotification(context);
-		}
-	}
+            // make sure there is always an alarm scheduled
+            BlockchainService.scheduleStart(application);
+
+            // if the app hasn't been used for a while and contains coins, maybe show reminder
+            final Configuration config = application.getConfiguration();
+            if (config.remindBalance() && config.hasBeenUsed()
+                    && config.getLastUsedAgo() > Constants.LAST_USAGE_THRESHOLD_INACTIVE_MS)
+                InactivityNotificationService.startMaybeShowNotification(context);
+        }
+    }
 }

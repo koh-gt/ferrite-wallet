@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2015 the original author or authors.
+ * Copyright the original author or authors.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -12,51 +12,65 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 package de.schildbach.wallet.ui;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import de.schildbach.wallet.R;
+
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import de.schildbach.wallet_test.R;
+import androidx.core.app.ActivityCompat;
+import androidx.lifecycle.ViewModelProviders;
 
 /**
  * @author Andreas Schildbach
  */
-public final class RequestCoinsActivity extends AbstractBindServiceActivity
-{
-	@Override
-	protected void onCreate(final Bundle savedInstanceState)
-	{
-		super.onCreate(savedInstanceState);
+public final class RequestCoinsActivity extends AbstractWalletActivity {
+    private RequestCoinsActivityViewModel viewModel;
 
-		setContentView(R.layout.request_coins_content);
-	}
+    private static final Logger log = LoggerFactory.getLogger(RequestCoinsActivity.class);
 
-	@Override
-	public boolean onCreateOptionsMenu(final Menu menu)
-	{
-		getMenuInflater().inflate(R.menu.request_coins_activity_options, menu);
+    @Override
+    protected void onCreate(final Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        log.info("Referrer: {}", ActivityCompat.getReferrer(this));
+        setContentView(R.layout.request_coins_content);
 
-		return super.onCreateOptionsMenu(menu);
-	}
+        viewModel = ViewModelProviders.of(this).get(RequestCoinsActivityViewModel.class);
+        viewModel.showHelpDialog.observe(this, new Event.Observer<Integer>() {
+            @Override
+            public void onEvent(final Integer messageResId) {
+                HelpDialogFragment.page(getSupportFragmentManager(), messageResId);
+            }
+        });
+    }
 
-	@Override
-	public boolean onOptionsItemSelected(final MenuItem item)
-	{
-		switch (item.getItemId())
-		{
-			case android.R.id.home:
-				finish();
-				return true;
+    @Override
+    public void onAttachedToWindow() {
+        setShowWhenLocked(true);
+    }
 
-			case R.id.request_coins_options_help:
-				HelpDialogFragment.page(getFragmentManager(), R.string.help_request_coins);
-				return true;
-		}
+    @Override
+    public boolean onCreateOptionsMenu(final Menu menu) {
+        getMenuInflater().inflate(R.menu.request_coins_activity_options, menu);
 
-		return super.onOptionsItemSelected(item);
-	}
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(final MenuItem item) {
+        switch (item.getItemId()) {
+        case R.id.request_coins_options_help:
+            viewModel.showHelpDialog.setValue(new Event<>(R.string.help_request_coins));
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
 }

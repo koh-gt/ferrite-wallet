@@ -1,0 +1,20 @@
+{
+  "version": 3,
+  "artifactType": {
+    "type": "APK",
+    "kind": "Directory"
+  },
+  "applicationId": "de.schildbach.wallet.ferrite",
+  "variantName": "prodRelease",
+  "elements": [
+    {
+      "type": "SINGLE",
+      "filters": [],
+      "attributes": [],
+      "versionCode": 30105,
+      "versionName": "3.1.5",
+      "outputFile": "wallet-prod-release.apk"
+    }
+  ],
+  "elementType": "File"
+}

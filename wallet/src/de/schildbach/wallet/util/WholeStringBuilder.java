@@ -12,7 +12,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 package de.schildbach.wallet.util;
@@ -24,17 +24,14 @@ import android.text.style.StyleSpan;
 /**
  * @author Andreas Schildbach
  */
-public class WholeStringBuilder extends SpannableStringBuilder
-{
-	public static CharSequence bold(final CharSequence text)
-	{
-		return new WholeStringBuilder(text, new StyleSpan(Typeface.BOLD));
-	}
+public class WholeStringBuilder extends SpannableStringBuilder {
+    public static CharSequence bold(final CharSequence text) {
+        return new WholeStringBuilder(text, new StyleSpan(Typeface.BOLD));
+    }
 
-	public WholeStringBuilder(final CharSequence text, final Object span)
-	{
-		super(text);
+    public WholeStringBuilder(final CharSequence text, final Object span) {
+        super(text);
 
-		setSpan(span, 0, text.length(), SpannableStringBuilder.SPAN_EXCLUSIVE_EXCLUSIVE);
-	}
+        setSpan(span, 0, text.length(), SpannableStringBuilder.SPAN_EXCLUSIVE_EXCLUSIVE);
+    }
 }

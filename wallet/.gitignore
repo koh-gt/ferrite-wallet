@@ -1,0 +1,4 @@
+res/mipmap-*hdpi/
+res/mipmap-mdpi/
+.externalNativeBuild/
+.cxx

@@ -12,7 +12,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 package de.schildbach.wallet.ui;
@@ -26,21 +26,18 @@ import android.widget.EditText;
 /**
  * @author Andreas Schildbach
  */
-public final class ShowPasswordCheckListener implements OnCheckedChangeListener
-{
-	private EditText[] passwordViews;
+public final class ShowPasswordCheckListener implements OnCheckedChangeListener {
+    private EditText[] passwordViews;
 
-	public ShowPasswordCheckListener(final EditText... passwordViews)
-	{
-		this.passwordViews = passwordViews;
-	}
+    public ShowPasswordCheckListener(final EditText... passwordViews) {
+        this.passwordViews = passwordViews;
+    }
 
-	@Override
-	public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked)
-	{
-		final TransformationMethod transformationMethod = isChecked ? null : PasswordTransformationMethod.getInstance();
+    @Override
+    public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
+        final TransformationMethod transformationMethod = isChecked ? null : PasswordTransformationMethod.getInstance();
 
-		for (final EditText passwordView : passwordViews)
-			passwordView.setTransformationMethod(transformationMethod);
-	}
+        for (final EditText passwordView : passwordViews)
+            passwordView.setTransformationMethod(transformationMethod);
+    }
 }

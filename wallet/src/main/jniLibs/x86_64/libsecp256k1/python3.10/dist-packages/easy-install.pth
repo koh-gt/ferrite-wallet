@@ -1,0 +1,17 @@
+./electrum_fec_server-1.0-py3.10.egg
+./plyvel-1.5.0-py3.10-linux-x86_64.egg
+./jsonrpclib-0.2.1-py3.10.egg
+./irc-14.0-py3.10.egg
+./jaraco.text-3.11.1-py3.10.egg
+./jaraco.logging-3.1.2-py3.10.egg
+./jaraco.itertools-6.2.1-py3.10.egg
+./jaraco.functools-3.8.0-py3.10.egg
+./jaraco.collections-4.3.0-py3.10.egg
+./jaraco.context-4.3.0-py3.10.egg
+./inflect-7.0.0-py3.10.egg
+./autocommand-2.2.2-py3.10.egg
+./tempora-5.5.0-py3.10.egg
+./typing_extensions-4.7.1-py3.10.egg
+./pydantic-2.0.2-py3.10.egg
+./pydantic_core-2.1.2-py3.10-linux-x86_64.egg
+./annotated_types-0.5.0-py3.10.egg

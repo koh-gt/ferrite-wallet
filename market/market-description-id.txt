@@ -1,20 +1,17 @@
-Dengan aplikasi ini Anda selalu mempunyai Bitcoin dengan Anda, dalam saku Anda! Anda dapat mengirim pembayaran hanya dengan memindai kode-QR atau mendekatkan dua ponsel bersama (NFC). Bitcoin Wallet dirancang untuk mudah digunakan dan diandalkan, sementara juga menjadi lebih aman dan cepat.
+Dengan aplikasi ini Anda selalu mempunyai Ferritecoin dengan Anda, dalam saku Anda! Anda dapat mengirim pembayaran hanya dengan memindai kode-QR atau mendekatkan dua ponsel bersama (NFC). Ferritecoin Wallet dirancang untuk mudah digunakan dan diandalkan, sementara juga menjadi lebih aman dan cepat.
 
 FITUR:
 
 • Tidak diperlukan server awan atau layanan web! Dompet ini benar-benar peer ke peer.
-• Tampilkan saldo dompet dalam Bitcoin dan mata uang lainnya.
-• Mengirim dan menerima Bitcoin via NFC, kode-QR atau Tautan Bitcoin.
+• Tampilkan saldo dompet dalam Ferritecoin dan mata uang lainnya.
+• Mengirim dan menerima Ferritecoin via NFC, kode-QR atau Tautan Ferritecoin.
 • Buku alamat untuk alamat penggunaan bitcoin secara reguler.
 • Masukkan transaksi saat offline, akan dilaksanakan ketika online.
-• Notifikasi sistem untuk konektivitas Bitcoin dan menerima koin.
-• Widget Apl untuk saldo Bitcoin.
+• Notifikasi sistem untuk konektivitas Ferritecoin dan menerima koin.
+• Widget Apl untuk saldo Ferritecoin.
 
-Anda dapat mengetahui lebih mengenai Bitcoin di
-https://bitcoin.org
-
-Jika Anda ingin berkontribusi kepada Bitcoin Wallet, proyeknya berada di
-https://github.com/bitcoin-wallet/bitcoin-wallet
+Jika Anda ingin berkontribusi kepada Ferritecoin Wallet, proyeknya berada di
+https://github.com/koh-gt/ferrite-wallet
 
 Lisensi: GPLv3
 Gunakan dengan resiko Anda!

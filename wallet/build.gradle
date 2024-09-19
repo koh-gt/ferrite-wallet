@@ -1,31 +1,56 @@
 apply plugin: 'com.android.application'
 apply plugin: 'androidsvgdrawable'
-def localMavenRepo = 'file://' + new File(System.getProperty('user.home'), '.m2/repository').absolutePath
+
 repositories {
-    maven { url localMavenRepo }
+    mavenLocal()
+}
+
+configurations {
+    all*.exclude group: 'com.google.android', module: 'android'
+    all*.exclude group: 'androidx.legacy', module: 'legacy-support-core-ui'
+    all*.exclude group: 'androidx.legacy', module: 'legacy-support-core-utils'
 }
 
 dependencies {
-    compile(project(':integration-android')) {
-        exclude(group: 'com.google.android', module: 'android')
-    }
-    compile 'com.android.support:support-annotations:23.1.1'
-    compile 'com.android.support:support-v4:23.1.1'
-    compile 'com.android.support:support-v13:23.1.1'
-    compile 'com.android.support:recyclerview-v7:23.1.1'
-    compile 'com.android.support:cardview-v7:23.1.1'
-    compile 'org.ferritej:ferritej-core:1.0.0'
-    compile 'com.google.protobuf:protobuf-java:2.5.0'
-    compile 'com.google.guava:guava:16.0.1'
-    compile 'com.google.zxing:core:3.2.1'
-    compile 'com.netki:wallet-name-resolver:0.1.4'
-    compile 'org.slf4j:slf4j-api:1.7.20'
-    compile('com.github.tony19:logback-android-classic:1.1.1-4') {
-        exclude(group: 'com.google.android', module: 'android')
-    }
-    compile 'com.github.tony19:logback-android-core:1.1.1-4'
-    compile 'com.google.code.findbugs:jsr305:2.0.3'
-    testCompile 'junit:junit:4.11'
+    implementation project(':integration-android')
+    implementation 'androidx.annotation:annotation:1.0.0'
+    implementation 'androidx.core:core:1.0.0'
+    implementation 'androidx.fragment:fragment:1.3.0'
+    implementation 'androidx.legacy:legacy-support-core-utils:1.0.0'
+    implementation 'androidx.recyclerview:recyclerview:1.0.0'
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'androidx.viewpager:viewpager:1.0.0'
+    implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
+    implementation 'androidx.lifecycle:lifecycle-extensions:2.0.0'
+    implementation "androidx.sqlite:sqlite:2.0.0"
+    implementation "androidx.room:room-runtime:2.2.5"
+    implementation 'androidx.activity:activity:1.3.1'
+    annotationProcessor "androidx.room:room-compiler:2.2.5"
+    implementation 'org.ferritej:ferritej-core:1.0.0'
+    implementation 'com.google.protobuf:protobuf-java:3.7.1'
+    // implementation 'com.google.protobuf:protobuf-java:3.21.12'
+    implementation 'com.google.guava:guava:25.1-android'
+    implementation 'com.google.zxing:core:3.3.3'
+    // implementation 'com.squareup.okhttp3:okhttp:3.12.1'
+    implementation 'com.squareup.okhttp3:okhttp:3.14.9'
+    //implementation 'com.squareup.okhttp3:okhttp:2.7.5'
+
+    implementation 'com.squareup.okhttp3:logging-interceptor:3.14.9'
+    implementation 'com.squareup.moshi:moshi:1.9.3'
+    implementation 'org.slf4j:slf4j-api:1.7.30'
+    implementation 'com.github.tony19:logback-android:1.3.0-2'
+    testImplementation 'junit:junit:4.13'
+
+    implementation 'com.madgag.spongycastle:core:1.54.0.0'
+    implementation 'com.madgag.spongycastle:prov:1.54.0.0'
+    implementation 'com.madgag.spongycastle:pkix:1.54.0.0'
+    implementation 'com.madgag.spongycastle:pg:1.54.0.0'
+
+    implementation 'com.lambdaworks:scrypt:1.4.0'
+
+    // multidex
+    // implementation 'com.android.support:multidex:1.0.0'
+
 }
 
 ext {
@@ -33,40 +58,64 @@ ext {
 }
 
 android {
-    compileSdkVersion 'android-21'
-    buildToolsVersion '24'
+    compileSdkVersion 33
+    buildToolsVersion '33.0.2'
 
     lintOptions {
         abortOnError false
         disable 'MissingTranslation'
     }
 
+    defaultConfig {
+        minSdkVersion 19
+        targetSdkVersion 33
+        applicationId 'de.schildbach.wallet'
+        generatedDensities = ['hdpi', 'xhdpi']
+        ndkVersion "23.1.7779620"
+
+        dexOptions {
+            preDexLibraries false
+        }
+
+        ndk {
+            abiFilters 'armeabi-v7a','arm64-v8a','x86','x86_64'
+        }
+
+        externalNativeBuild {
+            cmake {
+                cFlags '-DHAVE_CONFIG_H'
+            }
+        }
+    }
+
     buildTypes {
         all {
-            minifyEnabled true
+            minifyEnabled true //true
             proguardFile 'proguard.cfg'
         }
         debug {
             debuggable true
         }
     }
-
     defaultConfig {
-        versionCode 14583
-        versionName "4.58.3"
+        versionCode 30105
+        versionName "3.1.5"
+        vectorDrawables.useSupportLibrary = true
 
+        // Enabling multidex support.
+        // multiDexEnabled true
     }
-
+    flavorDimensions("version")
     productFlavors {
         _testNet {
-            applicationId = "de.schildbach.ferrite.wallet_test"
+            dimension "version"
+            applicationId = "de.schildbach.wallet.ferrite_test"
         }
         prod {
-            applicationId = "de.schildbach.ferrite.wallet"
+            dimension "version"
+            applicationId = "de.schildbach.wallet.ferrite"
         }
     }
-
-
 
     sourceSets {
         main {
@@ -74,6 +123,7 @@ android {
             java.srcDirs = ['src']
             res.srcDirs = ['res']
             assets.srcDirs = ['assets']
+            jniLibs.srcDirs = ['libs']
         }
         test {
             java.srcDirs = ['test']
@@ -81,12 +131,17 @@ android {
         }
     }
 
+    externalNativeBuild {
+        cmake {
+            path 'cpp/CMakeLists.txt'
+        }
+    }
+
     packagingOptions {
+        exclude 'META-INF/*.version'
+        exclude 'META-INF/proguard/**'
         exclude 'lib/x86_64/darwin/libscrypt.dylib'
-        exclude 'lib/x86_64/freebsd/libscrypt.so'
-        exclude 'lib/x86_64/linux/libscrypt.so'
-        exclude 'com/google/thirdparty/publicsuffix/PublicSuffixPatterns.gwt.xml'
-        exclude 'com/google/thirdparty/publicsuffix/PublicSuffixType.gwt.xml'
+        exclude 'okhttp3/internal/publicsuffix/publicsuffixes.gz'
         exclude 'org/bitcoinj/crypto/mnemonic/wordlist/english.txt'
         exclude 'org/bitcoinj/crypto/cacerts'
         exclude 'org.bitcoin.production.checkpoints.txt'
@@ -94,10 +149,12 @@ android {
     }
 }
 /*
-task svgToPng(type: fr.avianey.androidsvgdrawable.gradle.SvgDrawableTask) {
-    from = files('graphics')
+task svgToPngMipmap(type: fr.avianey.androidsvgdrawable.gradle.SvgDrawableTask) {
+    from = files('graphics/mipmap')
     to = file('res')
-    targetedDensities = ['hdpi', 'xhdpi', 'xxhdpi']
+    // targetedDensities = ['hdpi', 'xhdpi', 'xxhdpi', 'xxxhdpi']
+    targetedDensities = ['hdpi']
     outputFormat = 'PNG'
+    outputType = 'mipmap'
 }
 */

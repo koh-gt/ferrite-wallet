@@ -1,0 +1,7 @@
+jaraco.collections
+jaraco.functools>=1.5
+jaraco.itertools
+jaraco.logging
+jaraco.text
+pytz
+six

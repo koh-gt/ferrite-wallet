@@ -84,27 +84,16 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(0,435.82679)">
-    <image
-       y="470.21933"
-       x="294.75256"
-       id="image3185"
-       xlink:href="file:///home/aschildbach/dev/workspace/bitcoin-wallet/market/market-url-qr.png"
-       height="462.85709"
-       width="462.85709" />
-    <g
-       id="g3347"
-       transform="matrix(6.9440354,0,0,6.9440354,303.99257,-254.84507)">
-      <path
-         style="fill:url(#coin-gradient);filter:url(#drop-shadow)"
-         d="M 63.0359,39.741 C 58.7619,56.884 41.3989,67.317 24.2539,63.042 7.1159,58.768 -3.3171,41.404 0.9589,24.262 5.2309,7.117 22.5939,-3.317 39.7339,0.957 c 17.144,4.274 27.576,21.64 23.302,38.784 z"
-         id="coin"
-         inkscape:connector-curvature="0" />
-      <path
-         style="fill:#ffffff;filter:url(#drop-shadow)"
-         d="m 46.1009,27.441 c 0.637,-4.258 -2.605,-6.547 -7.038,-8.074 l 1.438,-5.768 -3.511,-0.875 -1.4,5.616 c -0.923,-0.23 -1.871,-0.447 -2.813,-0.662 l 1.41,-5.653 -3.509,-0.875 -1.439,5.766 c -0.764,-0.174 -1.514,-0.346 -2.242,-0.527 l 0.004,-0.018 -4.842,-1.209 -0.934,3.75 c 0,0 2.605,0.597 2.55,0.634 1.422,0.355 1.679,1.296 1.636,2.042 l -1.638,6.571 c 0.098,0.025 0.225,0.061 0.365,0.117 -0.117,-0.029 -0.242,-0.061 -0.371,-0.092 l -2.296,9.205 c -0.174,0.432 -0.615,1.08 -1.609,0.834 0.035,0.051 -2.552,-0.637 -2.552,-0.637 l -1.743,4.019 4.569,1.139 c 0.85,0.213 1.683,0.436 2.503,0.646 l -1.453,5.834 3.507,0.875 1.439,-5.772 c 0.958,0.26 1.888,0.5 2.798,0.726 l -1.434,5.745 3.511,0.875 1.453,-5.823 c 5.987,1.133 10.489,0.676 12.384,-4.739 1.527,-4.36 -0.076,-6.875 -3.226,-8.515 2.294,-0.529 4.022,-2.038 4.483,-5.155 z m -8.022,11.249 c -1.085,4.36 -8.426,2.003 -10.806,1.412 l 1.928,-7.729 c 2.38,0.594 10.012,1.77 8.878,6.317 z m 1.086,-11.312 c -0.99,3.966 -7.1,1.951 -9.082,1.457 l 1.748,-7.01 c 1.982,0.494 8.365,1.416 7.334,5.553 z"
-         id="symbol"
-         inkscape:connector-curvature="0" />
-    </g>
+    <defs>
+    <style>
+      .cls-2 {
+        fill: gold;
+      }
+    </style>
+  </defs>
+  <circle cx="2048" cy="2048" r="2048" fill="black" transform="scale(0.11) translate(2750,-2350)"/>
+  <path id="Color_Fill_3" data-name="Color Fill 3" class="cls-2" d="M3345,1993v110H2525q-277.965,484.95-556,970-376.455-218.985-753-438,151.98-265.98,304-532H751V1993h833q277.965-484.95,556-970,375.96,218.475,752,437-151.98,266.475-304,533h757ZM2179,1174q-406.455,709.935-813,1420v1l563,327q406.455-709.935,813-1420Q2460.525,1338.02,2179,1174Z" transform="scale(0.11) translate(2750,-2350)"/>
+    
     <text
        xml:space="preserve"
        style="font-size:28px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Ubuntu;-inkscape-font-specification:Ubuntu"
@@ -166,7 +155,7 @@
          id="tspan3001"
          x="522.08307"
          y="329.50504"
-         style="font-size:128px;font-style:normal;font-variant:normal;font-weight:500;font-stretch:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;font-family:Ubuntu;-inkscape-font-specification:Ubuntu Medium">Bitcoin Wallet</tspan><tspan
+         style="font-size:128px;font-style:normal;font-variant:normal;font-weight:500;font-stretch:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;font-family:Ubuntu;-inkscape-font-specification:Ubuntu Medium">Ferrite Wallet</tspan><tspan
          sodipodi:role="line"
          x="532.45416"
          y="450.97589"
@@ -187,7 +176,7 @@
          sodipodi:role="line"
          id="tspan2987"
          x="74.945839"
-         y="-360.49496">Your own Bitcoins, on your own phone!</tspan><tspan
+         y="-360.49496">Your own Ferritecoins, on your own phone!</tspan><tspan
          sodipodi:role="line"
          x="74.945839"
          y="-300.49496"

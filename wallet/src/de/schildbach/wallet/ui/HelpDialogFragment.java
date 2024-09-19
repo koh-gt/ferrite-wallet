@@ -12,63 +12,69 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 package de.schildbach.wallet.ui;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import android.app.Activity;
 import android.app.Dialog;
-import android.app.DialogFragment;
-import android.app.FragmentManager;
+import android.content.Context;
 import android.os.Bundle;
 import android.text.Html;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.FragmentManager;
 
 /**
  * @author Andreas Schildbach
  */
-public final class HelpDialogFragment extends DialogFragment
-{
-	private static final String FRAGMENT_TAG = HelpDialogFragment.class.getName();
+public final class HelpDialogFragment extends DialogFragment {
+    private static final String FRAGMENT_TAG = HelpDialogFragment.class.getName();
 
-	private static final String KEY_MESSAGE = "message";
+    private static final String KEY_MESSAGE = "message";
 
-	public static void page(final FragmentManager fm, final int messageResId)
-	{
-		final DialogFragment newFragment = HelpDialogFragment.instance(messageResId);
-		newFragment.show(fm, FRAGMENT_TAG);
-	}
+    public static void page(final FragmentManager fm, final int messageResId) {
+        final DialogFragment newFragment = HelpDialogFragment.instance(messageResId);
+        newFragment.show(fm, FRAGMENT_TAG);
+    }
 
-	private static HelpDialogFragment instance(final int messageResId)
-	{
-		final HelpDialogFragment fragment = new HelpDialogFragment();
+    private static HelpDialogFragment instance(final int messageResId) {
+        final HelpDialogFragment fragment = new HelpDialogFragment();
 
-		final Bundle args = new Bundle();
-		args.putInt(KEY_MESSAGE, messageResId);
-		fragment.setArguments(args);
+        final Bundle args = new Bundle();
+        args.putInt(KEY_MESSAGE, messageResId);
+        fragment.setArguments(args);
 
-		return fragment;
-	}
+        return fragment;
+    }
 
-	private Activity activity;
+    private Activity activity;
 
-	@Override
-	public void onAttach(final Activity activity)
-	{
-		super.onAttach(activity);
+    private static final Logger log = LoggerFactory.getLogger(HelpDialogFragment.class);
 
-		this.activity = activity;
-	}
+    @Override
+    public void onAttach(final Context context) {
+        super.onAttach(context);
+        this.activity = (AbstractWalletActivity) context;
+    }
 
-	@Override
-	public Dialog onCreateDialog(final Bundle savedInstanceState)
-	{
-		final Bundle args = getArguments();
-		final int messageResId = args.getInt(KEY_MESSAGE);
+    @Override
+    public void onCreate(final Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        log.info("opening dialog {}", getClass().getName());
+    }
 
-		final DialogBuilder dialog = new DialogBuilder(activity);
-		dialog.setMessage(Html.fromHtml(getString(messageResId)));
-		dialog.singleDismissButton(null);
-		return dialog.create();
-	}
+    @Override
+    public Dialog onCreateDialog(final Bundle savedInstanceState) {
+        final Bundle args = getArguments();
+        final int messageResId = args.getInt(KEY_MESSAGE);
+
+        final DialogBuilder dialog = new DialogBuilder(activity);
+        dialog.setMessage(Html.fromHtml(getString(messageResId)));
+        dialog.singleDismissButton(null);
+        return dialog.create();
+    }
 }

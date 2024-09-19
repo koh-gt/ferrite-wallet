@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright the original author or authors.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -12,32 +12,39 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 package de.schildbach.wallet.ui.send;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static androidx.core.util.Preconditions.checkNotNull;
 
-import javax.annotation.Nullable;
+import java.util.Map;
 
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.TransactionOutput;
 import org.bitcoinj.crypto.KeyCrypterException;
-import org.bitcoinj.wallet.Wallet;
 import org.bitcoinj.wallet.KeyChain.KeyPurpose;
 import org.bitcoinj.wallet.SendRequest;
+import org.bitcoinj.wallet.Wallet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.params.KeyParameter;
 
-import android.app.Activity;
+import de.schildbach.wallet.Configuration;
+import de.schildbach.wallet.Constants;
+import de.schildbach.wallet.R;
+import de.schildbach.wallet.WalletApplication;
+import de.schildbach.wallet.service.BlockchainService;
+import de.schildbach.wallet.ui.AbstractWalletActivity;
+import de.schildbach.wallet.ui.DialogBuilder;
+import de.schildbach.wallet.util.WalletUtils;
+
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.DialogFragment;
-import android.app.FragmentManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnShowListener;
 import android.graphics.Typeface;
@@ -53,311 +60,301 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import de.schildbach.wallet.Configuration;
-import de.schildbach.wallet.Constants;
-import de.schildbach.wallet.WalletApplication;
-import de.schildbach.wallet.ui.AbstractWalletActivity;
-import de.schildbach.wallet.ui.DialogBuilder;
-import de.schildbach.wallet.util.WalletUtils;
-import de.schildbach.wallet_test.R;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 
 /**
  * @author Andreas Schildbach
  */
-public class RaiseFeeDialogFragment extends DialogFragment
-{
-	private static final String FRAGMENT_TAG = RaiseFeeDialogFragment.class.getName();
-	private static final String KEY_TRANSACTION = "transaction";
-	private static final Coin FEE_RAISE = FeeCategory.PRIORITY.feePerKb.multiply(2);
+public class RaiseFeeDialogFragment extends DialogFragment {
+    private static final String FRAGMENT_TAG = RaiseFeeDialogFragment.class.getName();
+    private static final String KEY_TRANSACTION = "transaction";
 
-	public static void show(final FragmentManager fm, final Transaction tx)
-	{
-		final DialogFragment newFragment = instance(tx);
-		newFragment.show(fm, FRAGMENT_TAG);
-	}
+    public static void show(final FragmentManager fm, final Transaction tx) {
+        final DialogFragment newFragment = instance(tx);
+        newFragment.show(fm, FRAGMENT_TAG);
+    }
 
-	private static RaiseFeeDialogFragment instance(final Transaction tx)
-	{
-		final RaiseFeeDialogFragment fragment = new RaiseFeeDialogFragment();
+    private static RaiseFeeDialogFragment instance(final Transaction tx) {
+        final RaiseFeeDialogFragment fragment = new RaiseFeeDialogFragment();
 
-		final Bundle args = new Bundle();
-		args.putSerializable(KEY_TRANSACTION, tx.getHash().getBytes());
-		fragment.setArguments(args);
+        final Bundle args = new Bundle();
+        args.putByteArray(KEY_TRANSACTION, tx.getHash().getBytes());
+        fragment.setArguments(args);
 
-		return fragment;
-	}
+        return fragment;
+    }
 
-	private AbstractWalletActivity activity;
-	private WalletApplication application;
-	private Configuration config;
-	private Wallet wallet;
+    private AbstractWalletActivity activity;
+    private WalletApplication application;
+    private Configuration config;
+    private Wallet wallet;
 
-	private Transaction transaction;
+    private Coin feeRaise = null;
+    private Transaction transaction;
 
-	@Nullable
-	private AlertDialog dialog;
+    @Nullable
+    private AlertDialog dialog;
 
-	private View passwordGroup;
-	private EditText passwordView;
-	private View badPasswordView;
-	private Button positiveButton, negativeButton;
+    private TextView messageView;
+    private View passwordGroup;
+    private EditText passwordView;
+    private View badPasswordView;
+    private Button positiveButton, negativeButton;
 
-	private HandlerThread backgroundThread;
-	private Handler backgroundHandler;
+    private RaiseFeeViewModel viewModel;
 
-	private enum State
-	{
-		INPUT, DECRYPTING, DONE
-	}
+    private HandlerThread backgroundThread;
+    private Handler backgroundHandler;
 
-	private State state = State.INPUT;
+    private enum State {
+        INPUT, DECRYPTING, DONE
+    }
 
-	private static final Logger log = LoggerFactory.getLogger(RaiseFeeDialogFragment.class);
+    private State state = State.INPUT;
 
-	@Override
-	public void onAttach(final Activity activity)
-	{
-		super.onAttach(activity);
+    private static final Logger log = LoggerFactory.getLogger(RaiseFeeDialogFragment.class);
 
-		this.activity = (AbstractWalletActivity) activity;
-		this.application = (WalletApplication) activity.getApplication();
-		this.config = application.getConfiguration();
-		this.wallet = application.getWallet();
-	}
+    @Override
+    public void onAttach(final Context context) {
+        super.onAttach(context);
+        this.activity = (AbstractWalletActivity) context;
+        this.application = activity.getWalletApplication();
+        this.config = application.getConfiguration();
+        this.wallet = application.getWallet();
+    }
 
-	@Override
-	public void onCreate(final Bundle savedInstanceState)
-	{
-		super.onCreate(savedInstanceState);
+    @Override
+    public void onCreate(final Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        log.info("opening dialog {}", getClass().getName());
 
-		final Bundle args = getArguments();
-		final byte[] txHash = (byte[]) args.getSerializable(KEY_TRANSACTION);
-		transaction = checkNotNull(wallet.getTransaction(Sha256Hash.wrap(txHash)));
+        viewModel = ViewModelProviders.of(this).get(RaiseFeeViewModel.class);
+        viewModel.getDynamicFees().observe(this, new Observer<Map<FeeCategory, Coin>>() {
+            @Override
+            public void onChanged(final Map<FeeCategory, Coin> dynamicFees) {
+                // We basically have to pay fee for two transactions:
+                // The transaction to raise the fee of and the CPFP transaction we're about to create.
+                final int size = transaction.getMessageSize() + 192;
+                feeRaise = dynamicFees.get(FeeCategory.PRIORITY).multiply(size).divide(1000);
+                updateView();
+            }
+        });
 
-		backgroundThread = new HandlerThread("backgroundThread", Process.THREAD_PRIORITY_BACKGROUND);
-		backgroundThread.start();
-		backgroundHandler = new Handler(backgroundThread.getLooper());
-	}
+        final Bundle args = getArguments();
+        transaction = checkNotNull(wallet.getTransaction(Sha256Hash.wrap(args.getByteArray(KEY_TRANSACTION))));
 
-	@Override
-	public Dialog onCreateDialog(final Bundle savedInstanceState)
-	{
-		final View view = LayoutInflater.from(activity).inflate(R.layout.raise_fee_dialog, null);
+        backgroundThread = new HandlerThread("backgroundThread", Process.THREAD_PRIORITY_BACKGROUND);
+        backgroundThread.start();
+        backgroundHandler = new Handler(backgroundThread.getLooper());
+    }
 
-		final TextView messageView = (TextView) view.findViewById(R.id.raise_fee_dialog_message);
-		messageView.setText(getString(R.string.raise_fee_dialog_message, config.getFormat().format(FEE_RAISE)));
+    @Override
+    public Dialog onCreateDialog(final Bundle savedInstanceState) {
+        final View view = LayoutInflater.from(activity).inflate(R.layout.raise_fee_dialog, null);
 
-		passwordGroup = view.findViewById(R.id.raise_fee_dialog_password_group);
+        messageView = (TextView) view.findViewById(R.id.raise_fee_dialog_message);
 
-		passwordView = (EditText) view.findViewById(R.id.raise_fee_dialog_password);
-		passwordView.setText(null);
+        passwordGroup = view.findViewById(R.id.raise_fee_dialog_password_group);
 
-		badPasswordView = view.findViewById(R.id.raise_fee_dialog_bad_password);
+        passwordView = (EditText) view.findViewById(R.id.raise_fee_dialog_password);
+        passwordView.setText(null);
 
-		final DialogBuilder builder = new DialogBuilder(activity);
-		builder.setTitle(R.string.raise_fee_dialog_title);
-		builder.setView(view);
-		builder.setPositiveButton(R.string.raise_fee_dialog_button_raise, null); // dummy, just to make it show
-		builder.setNegativeButton(R.string.button_dismiss, null);
-		builder.setCancelable(false);
+        badPasswordView = view.findViewById(R.id.raise_fee_dialog_bad_password);
 
-		final AlertDialog dialog = builder.create();
-		dialog.setCanceledOnTouchOutside(false);
+        final DialogBuilder builder = new DialogBuilder(activity);
+        builder.setTitle(R.string.raise_fee_dialog_title);
+        builder.setView(view);
+        // dummies, just to make buttons show
+        builder.setPositiveButton(R.string.raise_fee_dialog_button_raise, null);
+        builder.setNegativeButton(R.string.button_dismiss, null);
+        builder.setCancelable(false);
 
-		dialog.setOnShowListener(new OnShowListener()
-		{
-			@Override
-			public void onShow(final DialogInterface d)
-			{
-				positiveButton = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
-				negativeButton = dialog.getButton(DialogInterface.BUTTON_NEGATIVE);
+        final AlertDialog dialog = builder.create();
+        dialog.setCanceledOnTouchOutside(false);
 
-				positiveButton.setTypeface(Typeface.DEFAULT_BOLD);
-				positiveButton.setOnClickListener(new OnClickListener()
-				{
-					@Override
-					public void onClick(final View v)
-					{
-						handleGo();
-					}
-				});
-				negativeButton.setOnClickListener(new OnClickListener()
-				{
-					@Override
-					public void onClick(final View v)
-					{
-						dismiss();
-					}
-				});
+        dialog.setOnShowListener(new OnShowListener() {
+            @Override
+            public void onShow(final DialogInterface d) {
+                positiveButton = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
+                negativeButton = dialog.getButton(DialogInterface.BUTTON_NEGATIVE);
 
-				passwordView.addTextChangedListener(textWatcher);
+                positiveButton.setTypeface(Typeface.DEFAULT_BOLD);
+                positiveButton.setOnClickListener(new OnClickListener() {
+                    @Override
+                    public void onClick(final View v) {
+                        handleGo();
+                    }
+                });
+                negativeButton.setOnClickListener(new OnClickListener() {
+                    @Override
+                    public void onClick(final View v) {
+                        dismissAllowingStateLoss();
+                    }
+                });
 
-				RaiseFeeDialogFragment.this.dialog = dialog;
-				updateView();
-			}
-		});
+                passwordView.addTextChangedListener(textWatcher);
 
-		log.info("showing raise fee dialog");
+                RaiseFeeDialogFragment.this.dialog = dialog;
+                updateView();
+            }
+        });
 
-		return dialog;
-	}
+        log.info("showing raise fee dialog");
 
-	@Override
-	public void onDismiss(final DialogInterface dialog)
-	{
-		this.dialog = null;
+        return dialog;
+    }
 
-		wipePasswords();
+    @Override
+    public void onDismiss(final DialogInterface dialog) {
+        this.dialog = null;
 
-		super.onDismiss(dialog);
-	}
+        wipePasswords();
 
-	@Override
-	public void onDestroy()
-	{
-		backgroundThread.getLooper().quit();
+        super.onDismiss(dialog);
+    }
 
-		super.onDestroy();
-	}
+    @Override
+    public void onDestroy() {
+        backgroundThread.getLooper().quit();
 
-	private void handleGo()
-	{
-		state = State.DECRYPTING;
-		updateView();
+        super.onDestroy();
+    }
 
-		if (wallet.isEncrypted())
-		{
-			new DeriveKeyTask(backgroundHandler)
-			{
-				@Override
-				protected void onSuccess(final KeyParameter encryptionKey)
-				{
-					doRaiseFee(encryptionKey);
-				}
-			}.deriveKey(wallet.getKeyCrypter(), passwordView.getText().toString().trim());
+    private void handleGo() {
+        state = State.DECRYPTING;
+        updateView();
 
-			updateView();
-		}
-		else
-		{
-			doRaiseFee(null);
-		}
-	}
+        if (wallet.isEncrypted()) {
+            new DeriveKeyTask(backgroundHandler, application.scryptIterationsTarget()) {
+                @Override
+                protected void onSuccess(final KeyParameter encryptionKey, final boolean wasChanged) {
+                    if (wasChanged)
+                        WalletUtils.autoBackupWallet(activity, wallet);
+                    doRaiseFee(encryptionKey);
+                }
+            }.deriveKey(wallet, passwordView.getText().toString().trim());
 
-	private void doRaiseFee(final KeyParameter encryptionKey)
-	{
-		// construct child-pays-for-parent
-		final TransactionOutput outputToSpend = checkNotNull(findSpendableOutput(wallet, transaction));
-		final Transaction transactionToSend = new Transaction(Constants.NETWORK_PARAMETERS);
-		transactionToSend.addInput(outputToSpend);
-		transactionToSend.addOutput(outputToSpend.getValue().subtract(FEE_RAISE), wallet.freshAddress(KeyPurpose.CHANGE));
-		transactionToSend.setPurpose(Transaction.Purpose.RAISE_FEE);
+            updateView();
+        } else {
+            doRaiseFee(null);
+        }
+    }
 
-		final SendRequest sendRequest = SendRequest.forTx(transactionToSend);
-		sendRequest.aesKey = encryptionKey;
+    private void doRaiseFee(final KeyParameter encryptionKey) {
+        // construct child-pays-for-parent
+        final TransactionOutput outputToSpend = checkNotNull(findSpendableOutput(wallet, transaction, feeRaise));
+        final Transaction transactionToSend = new Transaction(Constants.NETWORK_PARAMETERS);
+        transactionToSend.addInput(outputToSpend);
+        transactionToSend.addOutput(outputToSpend.getValue().subtract(feeRaise),
+                wallet.freshAddress(KeyPurpose.CHANGE));
+        transactionToSend.setPurpose(Transaction.Purpose.RAISE_FEE);
 
-		try
-		{
-			wallet.signTransaction(sendRequest);
+        final SendRequest sendRequest = SendRequest.forTx(transactionToSend);
+        sendRequest.aesKey = encryptionKey;
 
-			log.info("raise fee: cpfp {}", transactionToSend);
+        try {
+            wallet.signTransaction(sendRequest);
 
-			wallet.commitTx(transactionToSend);
-			application.broadcastTransaction(transactionToSend);
+            log.info("raise fee: cpfp {}", transactionToSend);
 
-			state = State.DONE;
-			updateView();
+            wallet.commitTx(transactionToSend);
+            BlockchainService.broadcastTransaction(activity, transactionToSend);
 
-			dismiss();
-		}
-		catch (final KeyCrypterException x)
-		{
-			badPasswordView.setVisibility(View.VISIBLE);
+            state = State.DONE;
+            updateView();
 
-			state = State.INPUT;
-			updateView();
+            dismiss();
+        } catch (final KeyCrypterException x) {
+            badPasswordView.setVisibility(View.VISIBLE);
 
-			passwordView.requestFocus();
+            state = State.INPUT;
+            updateView();
 
-			log.info("raise fee: bad spending password");
-		}
-	}
+            passwordView.requestFocus();
 
-	private void wipePasswords()
-	{
-		passwordView.setText(null);
-	}
+            log.info("raise fee: bad spending password");
+        }
+    }
 
-	private void updateView()
-	{
-		if (dialog == null)
-			return;
+    private void wipePasswords() {
+        passwordView.setText(null);
+    }
 
-		final boolean needsPassword = wallet.isEncrypted();
-		passwordGroup.setVisibility(needsPassword ? View.VISIBLE : View.GONE);
+    private void updateView() {
+        if (dialog == null)
+            return;
 
-		if (state == State.INPUT)
-		{
-			positiveButton.setText(R.string.raise_fee_dialog_button_raise);
-			positiveButton.setEnabled(!needsPassword || passwordView.getText().toString().trim().length() > 0);
-			negativeButton.setEnabled(true);
-		}
-		else if (state == State.DECRYPTING)
-		{
-			positiveButton.setText(R.string.raise_fee_dialog_state_decrypting);
-			positiveButton.setEnabled(false);
-			negativeButton.setEnabled(false);
-		}
-		else if (state == State.DONE)
-		{
-			positiveButton.setText(R.string.raise_fee_dialog_state_done);
-			positiveButton.setEnabled(false);
-			negativeButton.setEnabled(false);
-		}
-	}
+        final boolean needsPassword = wallet.isEncrypted();
 
-	private final TextWatcher textWatcher = new TextWatcher()
-	{
-		@Override
-		public void onTextChanged(final CharSequence s, final int start, final int before, final int count)
-		{
-			badPasswordView.setVisibility(View.INVISIBLE);
-			updateView();
-		}
+        if (feeRaise == null) {
+            messageView.setText(R.string.raise_fee_dialog_determining_fee);
+            passwordGroup.setVisibility(View.GONE);
+        } else if (findSpendableOutput(wallet, transaction, feeRaise) == null) {
+            messageView.setText(R.string.raise_fee_dialog_cant_raise);
+            passwordGroup.setVisibility(View.GONE);
+        } else {
+            messageView.setText(getString(R.string.raise_fee_dialog_message, config.getFormat().format(feeRaise)));
+            passwordGroup.setVisibility(needsPassword ? View.VISIBLE : View.GONE);
+        }
 
-		@Override
-		public void beforeTextChanged(final CharSequence s, final int start, final int count, final int after)
-		{
-		}
+        if (state == State.INPUT) {
+            positiveButton.setText(R.string.raise_fee_dialog_button_raise);
+            positiveButton.setEnabled((!needsPassword || passwordView.getText().toString().trim().length() > 0)
+                    && feeRaise != null && findSpendableOutput(wallet, transaction, feeRaise) != null);
+            negativeButton.setEnabled(true);
+        } else if (state == State.DECRYPTING) {
+            positiveButton.setText(R.string.raise_fee_dialog_state_decrypting);
+            positiveButton.setEnabled(false);
+            negativeButton.setEnabled(false);
+        } else if (state == State.DONE) {
+            positiveButton.setText(R.string.raise_fee_dialog_state_done);
+            positiveButton.setEnabled(false);
+            negativeButton.setEnabled(false);
+        }
+    }
 
-		@Override
-		public void afterTextChanged(final Editable s)
-		{
-		}
-	};
+    private final TextWatcher textWatcher = new TextWatcher() {
+        @Override
+        public void onTextChanged(final CharSequence s, final int start, final int before, final int count) {
+            badPasswordView.setVisibility(View.INVISIBLE);
+            updateView();
+        }
 
-	public static boolean feeCanBeRaised(final Wallet wallet, final Transaction transaction)
-	{
-		if (transaction.getConfidence().getDepthInBlocks() > 0)
-			return false;
+        @Override
+        public void beforeTextChanged(final CharSequence s, final int start, final int count, final int after) {
+        }
 
-		if (WalletUtils.isPayToManyTransaction(transaction))
-			return false;
+        @Override
+        public void afterTextChanged(final Editable s) {
+        }
+    };
 
-		if (findSpendableOutput(wallet, transaction) == null)
-			return false;
+    public static boolean feeCanLikelyBeRaised(final Wallet wallet, final Transaction transaction) {
+        if (transaction.getConfidence().getDepthInBlocks() > 0)
+            return false;
 
-		return true;
-	}
+        if (WalletUtils.isPayToManyTransaction(transaction))
+            return false;
 
-	private static @Nullable TransactionOutput findSpendableOutput(final Wallet wallet, final Transaction transaction)
-	{
-		for (final TransactionOutput output : transaction.getOutputs())
-		{
-			if (output.isMine(wallet) && output.isAvailableForSpending() && output.getValue().isGreaterThan(FEE_RAISE))
-				return output;
-		}
+        // We don't know dynamic fees here, so we need to guess.
+        if (findSpendableOutput(wallet, transaction, Transaction.DEFAULT_TX_FEE) == null)
+            return false;
 
-		return null;
-	}
+        return true;
+    }
+
+    private static @Nullable TransactionOutput findSpendableOutput(final Wallet wallet, final Transaction transaction,
+            final Coin minimumOutputValue) {
+        for (final TransactionOutput output : transaction.getOutputs()) {
+            if (output.isMine(wallet) && output.isAvailableForSpending()
+                    && output.getValue().isGreaterThan(minimumOutputValue))
+                return output;
+        }
+
+        return null;
+    }
 }
