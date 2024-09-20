@@ -150,7 +150,7 @@ public final class BlockListFragment extends Fragment implements BlockListAdapte
                     final Uri blockExplorerUri = config.getBlockExplorer();
                     log.info("Viewing block {} on {}", blockHash, blockExplorerUri);
                     startActivity(new Intent(Intent.ACTION_VIEW,
-                            Uri.withAppendedPath(blockExplorerUri, "block.dws?" + blockHash)));
+                            Uri.withAppendedPath(blockExplorerUri, "block/" + blockHash)));
                     return true;
                 }
                 return false;
