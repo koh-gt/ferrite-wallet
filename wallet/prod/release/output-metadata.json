@@ -4,15 +4,15 @@
     "type": "APK",
     "kind": "Directory"
   },
-  "applicationId": "de.schildbach.wallet.ferrite",
+  "applicationId": "wallet.fec",
   "variantName": "prodRelease",
   "elements": [
     {
       "type": "SINGLE",
       "filters": [],
       "attributes": [],
-      "versionCode": 30107,
-      "versionName": "3.1.7",
+      "versionCode": 30108,
+      "versionName": "3.1.8",
       "outputFile": "wallet-prod-release.apk"
     }
   ],

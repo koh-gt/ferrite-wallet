@@ -237,56 +237,49 @@ public class ExchangeRatesProvider extends ContentProvider {
 
     private Map<String, ExchangeRate> requestExchangeRates() {
         final Stopwatch watch = Stopwatch.createStarted();
-
+    
         final Request.Builder request = new Request.Builder();
-        request.url(COINGECKO_URL);
+        request.url(COINPAPRIKA_URL);
         request.header("User-Agent", userAgent);
-
+    
         final Call call = Constants.HTTP_CLIENT.newCall(request.build());
         try {
             final Response response = call.execute();
             if (response.isSuccessful()) {
                 final String content = response.body().string();
                 final JSONObject head = new JSONObject(content);
-                final Map<String, ExchangeRate> rates = new TreeMap<String, ExchangeRate>();
-
-                //check for correct information
-                if(head.getString("id").equals("ferrite")) {
-                    JSONObject marketData = head.getJSONObject("market_data");
-                    JSONObject currentPrice = marketData.getJSONObject("current_price");
-
-                    for (final Iterator<String> i = currentPrice.keys(); i.hasNext(); ) {
-                        final String currencyCode = i.next();
-                        final String fiatCurrencyCode = currencyCode.toUpperCase();
-                        if (!fiatCurrencyCode.equals(MonetaryFormat.CODE_BTC)
-                                && !fiatCurrencyCode.equals(MonetaryFormat.CODE_MBTC)
-                                && !fiatCurrencyCode.equals(MonetaryFormat.CODE_UBTC)) {
-                            final String exchangeRate = currentPrice.getString(currencyCode);//head.getJSONObject(currencyCode);
-                            try {
-                                final Fiat rate = parseFiatInexact(fiatCurrencyCode, exchangeRate);
-                                if (rate.signum() > 0)
-                                    rates.put(fiatCurrencyCode, new ExchangeRate(
-                                            new org.bitcoinj.utils.ExchangeRate(rate), COINGECKO_SOURCE));
-                            } catch (final IllegalArgumentException x) {
-                                log.warn("problem fetching {} exchange rate from {}: {}", currencyCode,
-                                        COINGECKO_URL, x.getMessage());
-                            }
+                final Map<String, ExchangeRate> rates = new TreeMap<>();
+    
+                // Check if the API response is for Ferrite
+                if (head.getString("id").equals("fec-ferrite")) {
+                    JSONObject quotes = head.getJSONObject("quotes");
+                    JSONObject usdQuote = quotes.getJSONObject("USD");
+    
+                    // Extract the USD price
+                    final String exchangeRate = usdQuote.getString("price");
+                    try {
+                        final Fiat rate = parseFiatInexact("USD", exchangeRate);
+                        if (rate.signum() > 0) {
+                            rates.put("USD", new ExchangeRate(
+                                    new org.bitcoinj.utils.ExchangeRate(rate), COINPAPRIKA_SOURCE));
                         }
+                    } catch (final IllegalArgumentException x) {
+                        log.warn("problem fetching USD exchange rate from {}: {}", COINPAPRIKA_URL, x.getMessage());
                     }
-
+    
                     watch.stop();
-                    log.info("fetched exchange rates from {}, {} chars, took {}", COINGECKO_URL, content.length(),
+                    log.info("fetched exchange rates from {}, {} chars, took {}", COINPAPRIKA_URL, content.length(),
                             watch);
-
+    
                     return rates;
                 }
             } else {
-                log.warn("http status {} when fetching exchange rates from {}", response.code(), COINGECKO_URL);
+                log.warn("http status {} when fetching exchange rates from {}", response.code(), COINPAPRIKA_URL);
             }
         } catch (final Exception x) {
-            log.warn("problem fetching exchange rates from " + COINGECKO_URL, x);
+            log.warn("problem fetching exchange rates from " + COINPAPRIKA_URL, x);
         }
-
+    
         return null;
     }
 
@@ -296,8 +289,7 @@ public class ExchangeRatesProvider extends ContentProvider {
         return Fiat.valueOf(currencyCode, val);
     }
 
-    private static String COINGECKO_URL = "https://api.coingecko.com/api/v3/coins/ferrite?localization=false&community_data=false&developer_data=false&sparkline=false";
-    private static final String COINGECKO_SOURCE = "CoinGecko.com";
-
+    private static final String COINPAPRIKA_URL = "https://api.coinpaprika.com/v1/tickers/fec-ferrite";
+    private static final String COINPAPRIKA_SOURCE = "CoinPaprika.com";
 
 }

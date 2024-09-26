@@ -98,8 +98,8 @@ android {
         }
     }
     defaultConfig {
-        versionCode 30107
-        versionName "3.1.7"
+        versionCode 30108
+        versionName "3.1.8"
         vectorDrawables.useSupportLibrary = true
 
         // Enabling multidex support.
@@ -109,11 +109,11 @@ android {
     productFlavors {
         _testNet {
             dimension "version"
-            applicationId = "de.schildbach.wallet.ferrite_test"
+            applicationId = "wallet.fec_test"
         }
         prod {
             dimension "version"
-            applicationId = "de.schildbach.wallet.ferrite"
+            applicationId = "wallet.fec"
         }
     }
 
