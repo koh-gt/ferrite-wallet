@@ -98,8 +98,8 @@ android {
         }
     }
     defaultConfig {
-        versionCode 30106
-        versionName "3.1.6"
+        versionCode 30107
+        versionName "3.1.7"
         vectorDrawables.useSupportLibrary = true
 
         // Enabling multidex support.
