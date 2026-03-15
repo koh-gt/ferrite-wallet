@@ -239,8 +239,9 @@ public class ExchangeRatesProvider extends ContentProvider {
         final Stopwatch watch = Stopwatch.createStarted();
     
         final Request.Builder request = new Request.Builder();
-        request.url(COINPAPRIKA_URL);
+        request.url(ANONEX_URL);
         request.header("User-Agent", userAgent);
+        request.header("accept", "application/json");
     
         final Call call = Constants.HTTP_CLIENT.newCall(request.build());
         try {
@@ -250,38 +251,39 @@ public class ExchangeRatesProvider extends ContentProvider {
                 final JSONObject head = new JSONObject(content);
                 final Map<String, ExchangeRate> rates = new TreeMap<>();
     
-                // Check if the API response is for Ferrite
-                if (head.getString("id").equals("fec-ferrite")) {
-                    JSONObject quotes = head.getJSONObject("quotes");
-                    JSONObject usdQuote = quotes.getJSONObject("USD");
+                // Verify this is the FEC_USDT ticker
+                if (head.getString("ticker_id").equals("FEC_USDT")) {
     
-                    // Extract the USD price
-                    final String exchangeRate = usdQuote.getString("price");
+                    // Extract the last_price (USDT ≈ USD)
+                    final String exchangeRate = head.getString("last_price");
                     try {
                         final Fiat rate = parseFiatInexact("USD", exchangeRate);
                         if (rate.signum() > 0) {
                             rates.put("USD", new ExchangeRate(
-                                    new org.bitcoinj.utils.ExchangeRate(rate), COINPAPRIKA_SOURCE));
+                                    new org.bitcoinj.utils.ExchangeRate(rate), ANONEX_SOURCE));
                         }
                     } catch (final IllegalArgumentException x) {
-                        log.warn("problem fetching USD exchange rate from {}: {}", COINPAPRIKA_URL, x.getMessage());
+                        log.warn("problem fetching USD exchange rate from {}: {}", ANONEX_URL, x.getMessage());
                     }
     
                     watch.stop();
-                    log.info("fetched exchange rates from {}, {} chars, took {}", COINPAPRIKA_URL, content.length(),
+                    log.info("fetched exchange rates from {}, {} chars, took {}", ANONEX_URL, content.length(),
                             watch);
     
                     return rates;
                 }
             } else {
-                log.warn("http status {} when fetching exchange rates from {}", response.code(), COINPAPRIKA_URL);
+                log.warn("http status {} when fetching exchange rates from {}", response.code(), ANONEX_URL);
             }
         } catch (final Exception x) {
-            log.warn("problem fetching exchange rates from " + COINPAPRIKA_URL, x);
+            log.warn("problem fetching exchange rates from " + ANONEX_URL, x);
         }
     
         return null;
     }
+    
+    private static final String ANONEX_URL = "https://api.anonex.io/api/v2/ticker/FEC_USDT";
+    private static final String ANONEX_SOURCE = "AnonEx.io";
 
     // backport from bitcoinj 0.15
     private static Fiat parseFiatInexact(final String currencyCode, final String str) {
@@ -289,7 +291,6 @@ public class ExchangeRatesProvider extends ContentProvider {
         return Fiat.valueOf(currencyCode, val);
     }
 
-    private static final String COINPAPRIKA_URL = "https://api.coinpaprika.com/v1/tickers/fec-ferrite";
-    private static final String COINPAPRIKA_SOURCE = "CoinPaprika.com";
+
 
 }
